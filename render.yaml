@@ -1,33 +1,54 @@
-# Render Blueprint
+# Render Blueprint configuration
 # https://render.com/docs/blueprint-spec
 
 services:
-  # Backend API (NestJS)
+  # API Backend
   - type: web
-    name: parking-control-api
+    name: ltrc-parking-control-api
     runtime: node
-    region: oregon
-    plan: free
-    buildCommand: npm ci && npx nx build @parking-control-monorepo/api
-    startCommand: node apps/api/dist/main.js
-    healthCheckPath: /api
+    buildCommand: npm ci --include=dev && npx nx build api --prod
+    startCommand: node dist/apps/api/main.js
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: "10000"
+      - key: API_PORT
+        value: 80
+      - key: API_GLOBAL_PREFIX
+        value: /api
+      - key: API_CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: ACCESS_LOG_THRESHOLD
+        value: "30"
+      - key: GOOGLE_AUTH_CLIENT_ID
+        sync: false
+      - key: GOOGLE_AUTH_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_AUTH_REDIRECT_URL
+        sync: false
+      - key: GOOGLE_AUTH_ALLOWED_DOMAIN
+        sync: false
+      - key: GOOGLE_AUTH_CALLBACK_URL
+        sync: false
+      - key: GOOGLE_AUTH_JWT_SECRET
+        sync: false
+      - key: GOOGLE_AUTH_REFRESH_JWT_SECRET
+        sync: false
+      - key: PARKING_SPACES
+        value: "50"
+    healthCheckPath: /api
 
-  # Frontend UI (Angular)
-  - type: static
-    name: parking-control-ui
-    buildCommand: npm ci && npx nx build @parking-control-monorepo/ui --configuration=production
-    staticPublishPath: apps/ui/dist/ltrc-parking-control-ui/browser
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
+  # UI Frontend (Static Site)
+  - type: web
+    name: ltrc-parking-control-ui
+    runtime: static
+    buildCommand: npm ci --include=dev && npx nx build ui --configuration=production
+    staticPublishPath: dist/apps/ui
+    envVars:
+      - key: NODE_ENV
+        value: production
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-

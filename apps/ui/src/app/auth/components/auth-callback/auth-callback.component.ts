@@ -4,7 +4,6 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {AuthService} from '../../auth.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {map} from 'rxjs';
-import {jwtDecode} from 'jwt-decode';
 
 @Component({
   selector: 'ltrc-auth-callback',

@@ -4,6 +4,8 @@ import {MatToolbarModule} from '@angular/material/toolbar';
 import {AuthService} from './auth/auth.service';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
+import {Observable} from 'rxjs';
+import {User} from './users/User.interface';
 
 @Component({
   selector: 'ltrc-root',
@@ -14,8 +16,7 @@ import {MatButtonModule} from '@angular/material/button';
 export class AppComponent {
 
   title = 'Estacionamiento LTRC';
-  // @ts-ignore
-  user$;
+  user$: Observable<User | null>;
 
   constructor(private authService: AuthService, private router: Router, private cd: ChangeDetectorRef) {
     this.user$ = this.authService.user$;

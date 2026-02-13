@@ -1,0 +1,38 @@
+meta {
+  name: Get Members
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/members?query=&page=1&limit=10
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Members
+
+  Obtiene la lista paginada de miembros.
+
+  ## Query Parameters
+
+  - `query`: Filtro de búsqueda (nombre o DNI)
+  - `page`: Número de página (default: 1)
+  - `limit`: Cantidad por página (default: 10)
+  - `sortBy`: Campo para ordenar (default: fullName)
+  - `sortOrder`: Dirección (asc/desc)
+
+  ## Respuesta esperada
+
+  ```json
+  {
+    "data": [...],
+    "total": 2,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+  ```
+}
+

@@ -13,7 +13,7 @@ export class AllowedRolesDirective implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private viewContainerRef: ViewContainerRef,
-    private templateRef: TemplateRef<any>
+    private templateRef: TemplateRef<unknown>
   ) {
   }
 

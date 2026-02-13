@@ -1,0 +1,25 @@
+meta {
+  name: Get Access Log
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/access-log
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get Access Log
+
+  ⚠️ **PENDIENTE DE IMPLEMENTAR**
+
+  Este endpoint aún no está implementado en la API.
+  Obtiene el registro de accesos al estacionamiento.
+}
+

@@ -29,9 +29,9 @@ export class MembersListComponent implements OnInit {
 
   displayedColumns: string[] = ['fullName', 'dni', 'actions'];
   dataSource = new MatTableDataSource<Member>();
-  totalMembers: number = 0;
-  currentPage: number = 1;
-  pageSize: number = 25;
+  totalMembers = 0;
+  currentPage = 1;
+  pageSize = 25;
   query = '';
 
   member!: Member;
@@ -70,7 +70,7 @@ export class MembersListComponent implements OnInit {
       });
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
     this.currentPage = event.pageIndex + 1;
     this.pageSize = event.pageSize;
     this.loadMembers();
@@ -140,7 +140,7 @@ export class MembersListComponent implements OnInit {
     });
   }
 
-  private buildMemberPayload(result: any): Member {
+  private buildMemberPayload(result: { lastName: string; name: string; dni: string }): Member {
     return {
       _id: '',
       fullName: `${result.lastName} ${result.name}`,

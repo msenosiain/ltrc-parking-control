@@ -1,0 +1,28 @@
+meta {
+  name: Get Parking Status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/parking/status
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Parking Status
+
+  Obtiene el estado actual del estacionamiento.
+
+  ## Respuesta esperada
+
+  ```json
+  {
+    "total": 50,
+    "occupied": 15,
+    "available": 35
+  }
+  ```
+}
+

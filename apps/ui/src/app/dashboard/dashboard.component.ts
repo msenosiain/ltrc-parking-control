@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import {MatSidenavModule} from "@angular/material/sidenav";
 import {MatListModule} from "@angular/material/list";
-import {RouterModule, RouterOutlet} from "@angular/router";
+import {RouterModule} from "@angular/router";
 import { Role } from '../auth/roles.enum';
 import {AllowedRolesDirective} from '../auth/directives/allowed-roles.directive';
 

@@ -33,7 +33,7 @@ import {ParkingService, ParkingStatus} from '../../../parking/parking.service';
 export class SearchMemberComponent implements OnInit {
   destroyRef = inject(DestroyRef);
   member: Member | undefined;
-  memberNotFoundMessage: string = '';
+  memberNotFoundMessage = '';
   registerAccessResponse: RegisterAccessResponse | undefined = undefined;
   dni = new FormControl('', [Validators.required, Validators.pattern(/^\d{7,8}$/)]);
   parkingStatus$: Observable<ParkingStatus | null>;

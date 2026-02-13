@@ -1,8 +1,7 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
-import {MatSubheaderHarness} from '@angular/material/list/testing';
 import {BehaviorSubject, Observable, throwError} from 'rxjs';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {User} from '../users/User.interface';
 import {jwtDecode} from 'jwt-decode';
 
@@ -40,7 +39,7 @@ export class AuthService {
     localStorage.setItem(this.refreshTokenKey, refreshToken);
   }
 
-  refreshToken(): Observable<any> {
+  refreshToken(): Observable<{ access_token: string; refresh_token: string }> {
 
     const refreshToken = localStorage.getItem(this.refreshTokenKey);
     if (refreshToken && this.isTokenExpired(refreshToken)) {
@@ -48,7 +47,7 @@ export class AuthService {
       return throwError(() => new Error('Refresh token expired'));
     }
 
-    return this.http.post(`${this.authApiUrl}/refresh`, {'refresh': refreshToken});
+    return this.http.post<{ access_token: string; refresh_token: string }>(`${this.authApiUrl}/refresh`, {'refresh': refreshToken});
   }
 
   getAccessToken(): string | null {
@@ -66,11 +65,11 @@ export class AuthService {
 
   private isTokenExpired(token: string): boolean {
     try {
-      const decoded: any = jwtDecode(token);
+      const decoded = jwtDecode<{ exp: number }>(token);
       const exp = decoded.exp;
       const now = Math.floor(Date.now() / 1000);
       return exp < now;
-    } catch (error) {
+    } catch {
       return true;
     }
   }
