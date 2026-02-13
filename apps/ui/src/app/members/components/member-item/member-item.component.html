@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Editar socio' : 'Crear socio' }}</h2>
+<form [formGroup]="form" (ngSubmit)="save()">
+<mat-dialog-content>
+  <div class="form-container">
+
+
+  <mat-form-field appearance="outline">
+    <mat-label>Nombre</mat-label>
+    <input matInput formControlName="name" />
+    <mat-error *ngIf="form.get('name')?.hasError('required')">Nombre es requerido</mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Apellido</mat-label>
+    <input matInput formControlName="lastName" />
+    <mat-error *ngIf="form.get('lastName')?.hasError('required')">Apellido es requerido</mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>DNI</mat-label>
+    <input matInput type="text" formControlName="dni" mask="separator" thousandSeparator="." separatorLimit="90000000"/>
+    <mat-error *ngIf="form.get('dni')?.hasError('required')">DNI es requerido</mat-error>
+    <mat-error *ngIf="form.get('dni')?.hasError('pattern')">DNI debe ser numérico de entre 7 y 8 dígitos</mat-error>
+  </mat-form-field>
+
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button type="button" (click)="cancel()">Cancelar</button>
+  <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+    {{ isEditMode ? 'Guardar' : 'Crear' }}
+  </button>
+</mat-dialog-actions>
+</form>

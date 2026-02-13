@@ -1,0 +1,12 @@
+<mat-toolbar color="primary">
+  <img src="logo-ltrc.png" alt="Logo" class="logo">
+  <span class="title">{{ title }}</span>
+  <ng-container *ngIf="user$ | async as user">
+    <span class="mat-display-small">{{ user.name }} {{ user.lastName }}</span>
+    <button mat-button (click)="logout()">Cerrar Sesión</button>
+  </ng-container>
+</mat-toolbar>
+<div style="padding: 20px;">
+  <router-outlet/>
+</div>
+

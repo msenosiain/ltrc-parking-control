@@ -1,0 +1,13 @@
+.btn-warn {
+  background-color: var(--mdc-theme-error);
+  color: var(--mdc-theme-on-error);
+
+  &:hover {
+    background-color: darkred;
+    color: white;
+  }
+}
+
+.message {
+  white-space: pre-line;
+}

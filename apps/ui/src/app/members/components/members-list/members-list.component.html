@@ -1,0 +1,49 @@
+<div class="members-list">
+  <h2>Socios</h2>
+
+  <div class="list-header">
+    <mat-form-field appearance="outline" class="search-input">
+      <input matInput [(ngModel)]="query" (ngModelChange)="applyFilter()" placeholder="Buscar..."/>
+      <button mat-icon-button matSuffix *ngIf="query" (click)="clearFilter()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <button mat-flat-button *ltrcAllowedRoles="[Role.ADMIN]" (click)="createMember()">Agregar Socio</button>
+  </div>
+
+
+  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+
+    <ng-container matColumnDef="fullName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+      <td mat-cell *matCellDef="let member">{{ member.fullName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="dni">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>DNI</th>
+      <td mat-cell *matCellDef="let member">{{ member.dni }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef> Acciones</th>
+      <td mat-cell *matCellDef="let member">
+        <button mat-icon-button (click)="editMember(member)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button (click)="deleteMember(member)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator [length]="totalMembers"
+                 [pageSize]="pageSize"
+                 [pageSizeOptions]="[10, 25, 50, 100]"
+                 (page)="onPageChange($event)">
+  </mat-paginator>
+</div>

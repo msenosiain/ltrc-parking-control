@@ -1,0 +1,65 @@
+<div class="container">
+  <mat-card class="search-card" appearance="outlined">
+    <ng-container *ngIf="!member && !registerAccessResponse && !memberNotFoundMessage">
+      <mat-form-field appearance="outline">
+        <input matInput mask="separator" thousandSeparator="." separatorLimit="90000000" type="tel"
+               [formControl]="dni" placeholder="Ingrese un número de DNI"/>
+      </mat-form-field>
+
+      <button mat-flat-button (click)="search()" [disabled]="dni.invalid">
+        <mat-icon>search</mat-icon>
+        Buscar
+      </button>
+
+      <div *ngIf="parkingStatus$ | async as parkingStatus" class="actions-container">
+        <p class="available-spots">Quedan {{ parkingStatus.available }} lugares disponibles</p>
+        <button class="car-left" mat-flat-button (click)="carLeft()" [disabled]="parkingStatus.available === parkingStatus.total">
+          Registrar SALIDA
+          <mat-icon>directions_cark</mat-icon>
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Member not found -->
+    <ng-container *ngIf="memberNotFoundMessage">
+      <mat-card-header>
+        <mat-card-title>{{ memberNotFoundMessage }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-actions align="end">
+        <button mat-button color="primary" (click)="acknowledge()">
+          Aceptar
+        </button>
+      </mat-card-actions>
+    </ng-container>
+
+    <!-- Member found -->
+    <ng-container *ngIf="member && !registerAccessResponse">
+      <mat-card-header>
+        <mat-card-title>Hola {{ member.fullName }}!</mat-card-title>
+        <mat-card-subtitle>DNI {{ member.dni }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-actions align="end">
+        <button mat-button color="secondary" (click)="cancel()">
+          Cancelar
+        </button>
+
+        <button mat-button color="primary" (click)="allow()" [disabled]="!member">
+          <mat-icon>no_crash</mat-icon> Registrar ACCESO
+        </button>
+      </mat-card-actions>
+    </ng-container>
+
+    <!-- Member allowed or not -->
+    <ng-container *ngIf="registerAccessResponse">
+      <mat-card-header>
+        <mat-card-title>{{ registerAccessResponse.title }}</mat-card-title>
+        <mat-card-subtitle>{{ registerAccessResponse.subtitle }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-actions align="end">
+        <button mat-button color="primary" (click)="acknowledge()">
+          Aceptar
+        </button>
+      </mat-card-actions>
+    </ng-container>
+  </mat-card>
+</div>

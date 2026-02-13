@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  flex-direction: column;
+
+  & > * {
+    width: 100%;
+  }
+
+  .search-card {
+    padding: 16px;
+  }
+
+  .available-spots {
+    text-align: center;
+  }
+
+  .actions-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centra horizontalmente */
+    align-items: center; /* centra verticalmente si el contenedor tiene altura */
+    height: 100px;
+  }
+}
+
+

@@ -1,0 +1,33 @@
+# Render Blueprint
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Backend API (NestJS)
+  - type: web
+    name: parking-control-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm ci && npx nx build @parking-control-monorepo/api
+    startCommand: node apps/api/dist/main.js
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+
+  # Frontend UI (Angular)
+  - type: static
+    name: parking-control-ui
+    buildCommand: npm ci && npx nx build @parking-control-monorepo/ui --configuration=production
+    staticPublishPath: apps/ui/dist/ltrc-parking-control-ui/browser
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+

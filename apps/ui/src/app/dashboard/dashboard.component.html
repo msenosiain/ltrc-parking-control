@@ -1,0 +1,14 @@
+<mat-sidenav-container class="container">
+  <mat-sidenav mode="side" opened>
+    <mat-nav-list>
+      <a *ltrcAllowedRoles="[Role.ADMIN]" mat-list-item routerLink="members">Socios</a>
+      <a mat-list-item href="#">Item 2</a>
+      <a mat-list-item href="#">Item 3</a>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
