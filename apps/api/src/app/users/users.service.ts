@@ -11,6 +11,18 @@ export class UsersService {
     return this.userModel.findOne({ googleId }).exec();
   }
 
+  async findOneByEmail(email: string, includePassword = false): Promise<User | null> {
+    const query = this.userModel.findOne({ email });
+    if (includePassword) {
+      query.select('+password');
+    }
+    return query.exec();
+  }
+
+  async findById(id: string): Promise<User | null> {
+    return this.userModel.findById(id).exec();
+  }
+
   async create(userData: Partial<User>): Promise<User> {
     const user = new this.userModel(userData);
     return user.save();

@@ -1,12 +1,19 @@
 <mat-toolbar color="primary">
-  <img src="logo-ltrc.png" alt="Logo" class="logo">
-  <span class="title">{{ title }}</span>
-  <ng-container *ngIf="user$ | async as user">
-    <span class="mat-display-small">{{ user.name }} {{ user.lastName }}</span>
-    <button mat-button (click)="logout()">Cerrar Sesión</button>
-  </ng-container>
+  <div class="toolbar-content">
+    <div class="logo-section" routerLink="/">
+      <img src="logo-ltrc.png" alt="Logo" class="logo">
+      <span class="title">{{ title }}</span>
+    </div>
+
+    <div class="user-section">
+    @if (user$ | async; as user) {
+        <span class="user-name">{{ user.name }} {{ user.lastName }}</span>
+        <button mat-button routerLink="/dashboard">DASHBOARD</button>
+        <button mat-button (click)="logout()">CERRAR SESIÓN</button>
+    }
+    </div>
+  </div>
 </mat-toolbar>
-<div style="padding: 20px;">
+<div class="main-content">
   <router-outlet/>
 </div>
-

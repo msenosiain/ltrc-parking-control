@@ -1,0 +1,82 @@
+:host {
+  display: block;
+}
+
+/* File row: field wide and centered, button aligned vertically center */
+.file-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  .file-field {
+    flex: 1 1 auto;
+    min-width: 300px;
+    max-width: 500px;
+
+    /* Remove bottom space from mat-form-field to align button properly */
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+
+  button {
+    /* Align buttons to the vertical center of the field */
+    align-self: center;
+  }
+}
+
+.preview {
+  margin-top: 16px;
+
+  h3 {
+    margin-bottom: 8px;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  .note {
+    color: #d32f2f;
+    margin-top: 8px;
+  }
+}
+
+.error {
+  color: #c62828;
+}
+
+.ok {
+  color: #2e7d32;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.invalid-list {
+  margin: 12px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fff8f8;
+  color: #b71c1c;
+
+  h4 {
+    margin: 0 0 8px 0;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .row-errors {
+    color: #c62828;
+    font-size: 0.9rem;
+    margin-top: 4px;
+  }
+}

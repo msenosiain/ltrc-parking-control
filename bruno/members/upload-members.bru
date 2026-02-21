@@ -1,0 +1,26 @@
+meta {
+  name: Upload Members (file)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/members/upload
+  body: none
+  auth: bearer
+  content-type: multipart/form-data
+  files: {
+    file: ./example-files/socios.xlsx
+  }
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Upload members file
+
+  Sube un archivo Excel (.xls/.xlsx) o CSV con socios. El backend debe procesar todas las filas y devolver un resumen con insertados y fallidos.
+}
+

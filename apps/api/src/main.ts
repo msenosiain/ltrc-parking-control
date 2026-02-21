@@ -13,11 +13,17 @@ async function bootstrap() {
   const corsAllowedOrigins = configService.get('API_CORS_ALLOWED_ORIGINS', '');
   const corsAllowedOriginsArray = corsAllowedOrigins
     .split(',')
-    .map((item: string) => item.trim());
-  app.enableCors({ origin: corsAllowedOriginsArray, credentials: true });
+    .map((item: string) => item.trim())
+    .filter(Boolean);
+  // If no origins provided, allow all origins (useful for local dev). Otherwise use the provided list.
+  if (corsAllowedOriginsArray.length === 0) {
+    app.enableCors({ origin: true, credentials: true });
+  } else {
+    app.enableCors({ origin: corsAllowedOriginsArray, credentials: true });
+  }
 
   Logger.log('Adding global prefix');
-  const globalPrefix = configService.get<string>('API_GLOBAL_PREFIX', '/api');
+  const globalPrefix = configService.get<string>('API_GLOBAL_PREFIX', '/api/v1');
   app.setGlobalPrefix(globalPrefix);
 
   app.useGlobalFilters(new MongooseExceptionFilter());

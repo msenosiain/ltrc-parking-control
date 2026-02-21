@@ -7,25 +7,33 @@
   <mat-form-field appearance="outline">
     <mat-label>Nombre</mat-label>
     <input matInput formControlName="name" />
-    <mat-error *ngIf="form.get('name')?.hasError('required')">Nombre es requerido</mat-error>
+    @if (form.get('name')?.hasError('required')) {
+      <mat-error>Nombre es requerido</mat-error>
+    }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
     <mat-label>Apellido</mat-label>
     <input matInput formControlName="lastName" />
-    <mat-error *ngIf="form.get('lastName')?.hasError('required')">Apellido es requerido</mat-error>
+    @if (form.get('lastName')?.hasError('required')) {
+      <mat-error>Apellido es requerido</mat-error>
+    }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
     <mat-label>DNI</mat-label>
     <input matInput type="text" formControlName="dni" mask="separator" thousandSeparator="." separatorLimit="90000000"/>
-    <mat-error *ngIf="form.get('dni')?.hasError('required')">DNI es requerido</mat-error>
-    <mat-error *ngIf="form.get('dni')?.hasError('pattern')">DNI debe ser numérico de entre 7 y 8 dígitos</mat-error>
+    @if (form.get('dni')?.hasError('required')) {
+      <mat-error>DNI es requerido</mat-error>
+    }
+    @if (form.get('dni')?.hasError('pattern')) {
+      <mat-error>DNI debe ser numérico de entre 7 y 8 dígitos</mat-error>
+    }
   </mat-form-field>
 
   </div>
 </mat-dialog-content>
-<mat-dialog-actions>
+<mat-dialog-actions align="end">
   <button mat-button type="button" (click)="cancel()">Cancelar</button>
   <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
     {{ isEditMode ? 'Guardar' : 'Crear' }}

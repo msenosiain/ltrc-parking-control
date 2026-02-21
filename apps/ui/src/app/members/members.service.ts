@@ -36,17 +36,31 @@ export class MembersService {
   }
 
   getMembers(query: string, page = 1, limit = 10, sortBy?: string, direction?: SortDirection): Observable<PaginatedResponse<Member>> {
+    const order = (direction && direction.length > 0) ? direction : 'asc';
     const params = new HttpParams()
       .set('query', query)
       .set('page', page.toString())
       .set('limit', limit.toString())
       .set('sortBy', sortBy ?? 'fullName')
-      .set('sortOrder', direction ?? 'asc');
+      .set('sortOrder', order);
 
     return this.httpClient.get<PaginatedResponse<Member>>(`${this.membersApiUrl}`, {params});
   }
 
   deleteMember(dni: string): Observable<void> {
     return this.httpClient.delete<void>(`${this.membersApiUrl}/${dni}`);
+  }
+
+  uploadMembers(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.httpClient.post<any>(`${this.membersApiUrl}/upload`, formData);
+  }
+
+  /**
+   * Upload an array of member rows as JSON. API endpoint: POST /members/upload-rows
+   */
+  uploadMemberRows(rows: Partial<Member>[]): Observable<any> {
+    return this.httpClient.post<any>(`${this.membersApiUrl}/upload-rows`, rows);
   }
 }

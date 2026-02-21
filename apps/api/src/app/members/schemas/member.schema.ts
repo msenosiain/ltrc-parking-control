@@ -11,3 +11,6 @@ export class Member extends Document {
 }
 
 export const MemberSchema = SchemaFactory.createForClass(Member);
+
+// Ensure an explicit unique index exists on dni (helps when index isn't created automatically)
+MemberSchema.index({ dni: 1 }, { unique: true });

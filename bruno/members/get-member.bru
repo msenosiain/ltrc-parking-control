@@ -1,0 +1,26 @@
+meta {
+  name: Get Member by DNI
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/members/{{dni}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get Member by DNI
+
+  Obtiene un socio por su DNI.
+
+  ## Path parameters
+
+  - `dni`: documento del socio a buscar
+}
+

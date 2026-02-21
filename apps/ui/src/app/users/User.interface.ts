@@ -1,7 +1,8 @@
 import {Role} from '../auth/roles.enum';
 
 export interface User {
-  googleId: string;
+  googleId?: string;
+  sub?: string;
   email: string;
   name: string;
   lastName: string;

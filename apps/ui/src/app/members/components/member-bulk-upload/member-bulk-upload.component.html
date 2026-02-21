@@ -1,0 +1,102 @@
+<h2 mat-dialog-title>Carga masiva de socios</h2>
+
+<mat-dialog-content>
+  <!-- File field and selection button in same row -->
+  <div class="file-row">
+    <mat-form-field appearance="outline" class="file-field">
+      <mat-label>Archivo</mat-label>
+      <input matInput [value]="selectedFileName" placeholder="Selecciona un archivo .csv o Excel" readonly />
+    </mat-form-field>
+
+    <input #fileInput type="file" accept=".csv,.xls,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" (change)="onFileSelected($event)" style="display:none" />
+
+    <button mat-stroked-button color="primary" (click)="openFilePicker()" aria-label="Seleccionar archivo" [disabled]="uploadCompleted">
+      <mat-icon>upload_file</mat-icon>
+      <span style="margin-left:8px">Seleccionar</span>
+    </button>
+
+    @if (selectedFile || rows.length > 0) {
+      <button mat-icon-button matTooltip="Limpiar" (click)="reset()" [disabled]="uploadCompleted">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  <!-- Show invalid rows if any -->
+  @if (invalidRows && invalidRows.length > 0) {
+    <div class="invalid-list mat-elevation-z2">
+      <div class="invalid-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <h4 style="margin:0">Filas con errores ({{ invalidRows.length }})</h4>
+        <div>
+          <button mat-stroked-button color="primary" (click)="downloadFailuresCsv()">Descargar fallos (CSV)</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Show duplicates returned by server after upload -->
+  @if (duplicateDnis && duplicateDnis.length > 0) {
+    <div class="invalid-list mat-elevation-z2">
+      <h4>Duplicados en la base de datos ({{ duplicateDnis.length }})</h4>
+      <ul>
+        @for (d of duplicateDnis; track d.dni) {
+          <li>DNI: <strong>{{ d.dni || '-' }}</strong> — {{ d.message || '-' }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (rows.length > 0) {
+    <div class="preview">
+      <h3>Vista previa ({{ rows.length }} filas)</h3>
+      <table mat-table [dataSource]="rows" class="mat-elevation-z1">
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let r">{{ r.fullName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="dni">
+          <th mat-header-cell *matHeaderCellDef>DNI</th>
+          <td mat-cell *matCellDef="let r">{{ r.dni || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="errors">
+          <th mat-header-cell *matHeaderCellDef>Errores</th>
+          <td mat-cell *matCellDef="let r">
+            @if (r.errors && r.errors.length) {
+              <div>
+                <span class="error">{{ r.errors?.join(', ') }}</span>
+              </div>
+            } @else {
+              <span class="ok">OK</span>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="headerColumns"></tr>
+        <tr mat-row *matRowDef="let _row; columns: headerColumns;"></tr>
+      </table>
+
+      @if (hasErrors()) {
+        <p class="note">Corrija las filas marcadas antes de subir.</p>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (uploadCompleted) {
+    <button mat-stroked-button (click)="closeDialog()">Cerrar</button>
+  } @else {
+    <button mat-button type="button" (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="upload()" [disabled]="loading || !selectedFile || (selectedFileName.toLowerCase().endsWith('.csv') && validRows.length===0)">
+      @if (loading) {
+        <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+      } @else {
+        <mat-icon>cloud_upload</mat-icon>
+      }
+      <span style="margin-left:8px">Procesar</span>
+    </button>
+  }
+</mat-dialog-actions>

@@ -1,12 +1,13 @@
 import {inject} from '@angular/core';
-import {CanActivateFn} from '@angular/router';
+import {CanActivateFn, Router} from '@angular/router';
 import {AuthService} from '../auth.service';
 
 export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
+  const router = inject(Router);
 
   if (!authService.isLoggedIn()) {
-    authService.loginWithGoogle();
+    router.navigate(['/login']);
     return false;
   }
   return authService.isLoggedIn();

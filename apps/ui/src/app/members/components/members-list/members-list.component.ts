@@ -15,10 +15,12 @@ import {MemberItemComponent} from '../member-item/member-item.component';
 import {ConfirmDialogComponent} from '../../../common/components/confirm-dialog/confirm-dialog.component';
 import {Role} from '../../../auth/roles.enum';
 import {AllowedRolesDirective} from '../../../auth/directives/allowed-roles.directive';
+import {MemberBulkUploadComponent} from '../member-bulk-upload/member-bulk-upload.component';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'ltrc-members-list',
-  imports: [CommonModule, MatButtonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatInputModule, MatIconModule, FormsModule, AllowedRolesDirective],
+  imports: [CommonModule, MatButtonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatInputModule, MatIconModule, FormsModule, AllowedRolesDirective, MatToolbarModule],
   templateUrl: './members-list.component.html',
   styleUrl: './members-list.component.scss'
 })
@@ -98,6 +100,20 @@ export class MembersListComponent implements OnInit {
         this.membersService.createMember(memberPayload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() =>
           this.loadMembers()
         );
+      }
+    });
+  }
+
+  openBulkUpload() {
+    const dialogRef = this.dialog.open(MemberBulkUploadComponent, {
+      width: '90vw',
+      maxWidth: '800px',
+      data: null,
+    });
+
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
+      if (result) {
+        this.loadMembers();
       }
     });
   }

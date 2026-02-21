@@ -1,0 +1,26 @@
+meta {
+  name: Upload Member Rows (JSON)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/members/upload-rows
+  body: json
+  auth: bearer
+  json: [
+    { "fullName": "Juan Perez", "dni": "12345678", "rowNumber": 2 },
+    { "fullName": "Ana Gomez", "dni": "87654321", "rowNumber": 3 }
+  ]
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Upload member rows
+
+  Sube un array JSON con filas ya parseadas (nombre/dni/rowNumber). El backend debe procesar cada fila y devolver un resumen con insertados, duplicados y fallidos.
+}
+

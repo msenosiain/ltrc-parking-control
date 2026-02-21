@@ -26,17 +26,17 @@ bruno/
 1. Abre Bruno y selecciona "Open Collection"
 2. Navega a la carpeta `bruno/` de este proyecto
 3. Selecciona el environment deseado:
-   - **local**: Para desarrollo local (`http://localhost:3000/api`)
-   - **render**: Para producción en Render (`https://parking-control-api.onrender.com/api`)
+   - **local**: Para desarrollo local (`http://localhost:3000/api/v1`)
+   - **render**: Para producción en Render (`https://parking-control-api.onrender.com/api/v1`)
 
 ## Environments
 
 ### Local
-- URL base: `http://localhost:3000/api`
+- URL base: `http://localhost:3000/api/v1`
 - Usar cuando la API está corriendo localmente con `npx nx serve api`
 
 ### Render
-- URL base: `https://parking-control-api.onrender.com/api`
+- URL base: `https://parking-control-api.onrender.com/api/v1`
 - Usar para probar la API desplegada en Render
 
 ## Endpoints disponibles

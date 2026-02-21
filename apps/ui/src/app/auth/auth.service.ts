@@ -1,9 +1,10 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../environments/environment';
-import {BehaviorSubject, Observable, throwError} from 'rxjs';
+import {BehaviorSubject, Observable, tap, throwError} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {User} from '../users/User.interface';
 import {jwtDecode} from 'jwt-decode';
+import {Router} from '@angular/router';
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
@@ -15,12 +16,28 @@ export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
   user$ = this.userSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private router: Router) {
     const token = localStorage.getItem(this.accessTokenKey);
     if (token) {
-      const user: User = jwtDecode(token);
-      this.userSubject.next(user);
+      try {
+        const user: User = jwtDecode(token);
+        this.userSubject.next(user);
+      } catch (e) {
+        this.logout();
+      }
     }
+  }
+
+  login(email: string, pass: string): Observable<{ access_token: string; refresh_token: string }> {
+    return this.http.post<{ access_token: string; refresh_token: string }>(`${this.authApiUrl}/login`, {
+      email,
+      pass
+    }).pipe(
+      tap(tokens => {
+        this.setAccessToken(tokens.access_token);
+        this.setRefreshToken(tokens.refresh_token);
+      })
+    );
   }
 
   loginWithGoogle() {
@@ -43,7 +60,8 @@ export class AuthService {
 
     const refreshToken = localStorage.getItem(this.refreshTokenKey);
     if (refreshToken && this.isTokenExpired(refreshToken)) {
-      this.loginWithGoogle();
+      this.logout();
+      this.router.navigate(['/login']);
       return throwError(() => new Error('Refresh token expired'));
     }
 

@@ -6,9 +6,11 @@ import {authGuard} from './auth/guards/auth.guard';
 import {MembersListComponent} from './members/components/members-list/members-list.component';
 import {hasRoleGuard} from './auth/guards/has-role.guard';
 import {Role} from './auth/roles.enum';
+import {LoginComponent} from './auth/components/login/login.component';
 
 export const routes: Routes = [
   {path: '', component: SearchMemberComponent},
+  {path: 'login', component: LoginComponent},
   {path: 'auth/callback', component: AuthCallbackComponent},
   {
     path: 'dashboard',

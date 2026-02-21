@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/members?query=&page=1&limit=10
+  url: {{baseUrl}}/members?query=&page=1&limit=10&sortBy=fullName&sortOrder=asc
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
 }
 
 docs {
@@ -35,4 +39,3 @@ docs {
   }
   ```
 }
-

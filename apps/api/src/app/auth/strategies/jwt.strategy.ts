@@ -21,14 +21,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>(
-        'GOOGLE_AUTH_JWT_SECRET',
-        'super-secret-key',
+        'AUTH_JWT_SECRET',
+        configService.get<string>('GOOGLE_AUTH_JWT_SECRET', 'super-secret-key'),
       ),
     });
   }
 
   async validate(payload: JwtPayload) {
-    const googleId = String(payload.sub);
-    return await this.usersService.findOneByGoogleId(googleId);
+    const userId = String(payload.sub);
+    return await this.usersService.findById(userId);
   }
 }

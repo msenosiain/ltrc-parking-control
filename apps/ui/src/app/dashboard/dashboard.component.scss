@@ -5,3 +5,35 @@
 mat-sidenav {
   width: 250px;
 }
+
+.content {
+  padding: 24px;
+}
+
+.dashboard-home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+
+  h1 {
+    margin-bottom: 32px;
+    color: #333;
+  }
+
+  .quick-actions {
+    display: flex;
+    gap: 16px;
+
+    button {
+      padding: 8px 24px;
+      font-size: 1.1rem;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}

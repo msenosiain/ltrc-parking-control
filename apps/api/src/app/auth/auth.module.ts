@@ -17,8 +17,8 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>(
-          'GOOGLE_AUTH_JWT_SECRET',
-          'super-secret-key',
+          'AUTH_JWT_SECRET',
+          configService.get<string>('GOOGLE_AUTH_JWT_SECRET', 'super-secret-key'),
         ),
         signOptions: { expiresIn: '1h' },
       }),

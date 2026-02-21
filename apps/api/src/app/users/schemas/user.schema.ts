@@ -4,8 +4,8 @@ import { Role } from '../../auth/roles.enum';
 
 @Schema()
 export class User extends Document {
-  @Prop({ required: true })
-  googleId!: string;
+  @Prop({ required: false })
+  googleId?: string;
 
   @Prop({ required: true })
   name!: string;
@@ -15,6 +15,9 @@ export class User extends Document {
 
   @Prop({ required: true, unique: true })
   email!: string;
+
+  @Prop({ required: false, select: false })
+  password?: string;
 
   @Prop({ type: [String], enum: Role, default: [Role.USER] })
   roles!: Role[];
