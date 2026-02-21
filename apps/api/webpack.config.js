@@ -3,7 +3,9 @@ const { join } = require('path');
 
 module.exports = {
   output: {
-    path: join(__dirname, '../../dist/api'),
+    // ...existing code...
+    // write build output to dist/apps/api to match start scripts
+    path: join(__dirname, '../../dist/apps/api'),
     clean: true,
     ...(process.env.NODE_ENV !== 'production' && {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
