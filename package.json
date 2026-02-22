@@ -1,5 +1,5 @@
 {
-  "name": "@parking-control/source",
+  "name": "parking-control",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {

@@ -22,7 +22,7 @@ export const configSchema = Joi.object({
   GOOGLE_AUTH_CALLBACK_URL: Joi.string().allow('').optional(),
   GOOGLE_AUTH_JWT_SECRET: Joi.string().allow('').optional(),
   GOOGLE_AUTH_REFRESH_JWT_SECRET: Joi.string().allow('').optional(),
-  PARKING_SPACES: Joi.number().required(),
+  PARKING_SPACES: Joi.number().default(50),
   AUTH_JWT_SECRET: Joi.string().optional(),
   AUTH_REFRESH_JWT_SECRET: Joi.string().optional(),
 });
