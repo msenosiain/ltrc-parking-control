@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { resolveQuery, escapeRegex } from '@parking-control/shared';
 
 @Injectable()
 export class MembersService {
@@ -21,29 +22,30 @@ export class MembersService {
   async getPaginated(paginationDto: PaginationDto) {
     const { query, page, limit, sortBy, sortOrder } = paginationDto;
 
-    const searchQuery = query
-      ? {
-          $or: [
-            { fullName: { $regex: `^${query}`, $options: 'i' } },
-            { dni: new RegExp(query, 'i') },
-          ],
-        }
-      : {};
+    // normalize it and prefer an anchored regex or exact match so Mongo can use the DNI index.
+    let searchQuery: any = {};
+    if (query) {
+      const maybeDni = String(query).replace(/[^0-9]/g, '').trim();
+      const nameRegex = { fullName: { $regex: `^${escapeRegex(String(query))}`, $options: 'i' } };
+
+      if (maybeDni.length >= 2) {
+        // for short numeric inputs use prefix match anchored at start (index-friendly)
+        const dniRegex = { dni: { $regex: `^${maybeDni}`, $options: 'i' } };
+        searchQuery = { $or: [nameRegex, dniRegex] };
+      } else {
+        // default behavior: search name (anchored) and dni as case-insensitive regex
+        searchQuery = { $or: [nameRegex, { dni: { $regex: escapeRegex(String(query)), $options: 'i' } }] };
+      }
+    }
 
     const sortField = sortBy || 'fullName';
     const order = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
 
-    const [members, total] = await Promise.all([
-      this.memberModel
-        .find(searchQuery)
-        .skip(skip)
-        .limit(limit)
-        .sort({ [sortField]: order })
-        .exec(),
-      this.memberModel.countDocuments().exec(),
-    ]);
+    // Use lean() for faster read and lower memory overhead
+    const membersQuery = this.memberModel.find(searchQuery).skip(skip).limit(limit).sort({ [sortField]: order });
+    const [members, total] = await Promise.all([resolveQuery<any[]>(membersQuery), this.memberModel.countDocuments().exec()]);
 
     return {
       data: members,
@@ -54,10 +56,23 @@ export class MembersService {
   }
 
   async searchByDni(dni: string): Promise<Member | null> {
-    return await this.memberModel
-      .findOne({ dni: new RegExp(dni, 'i') })
-      .select('-_id')
-      .exec();
+    if (!dni) return null;
+    // normalize digits only
+    const normalized = String(dni).replace(/[^0-9]/g, '').trim();
+
+    // If the normalized string length matches a typical DNI length (or seems complete), try exact match first.
+    if (normalized.length >= 6) {
+      const exactQuery = this.memberModel.findOne({ dni: normalized }).select('-_id');
+      const exact = await resolveQuery<any>(exactQuery);
+      if (exact) return exact as any;
+    }
+
+    // Fallback to prefix (anchored) search which can use the index
+    const prefix = normalized || escapeRegex(String(dni));
+    const q: any = { dni: { $regex: `^${prefix}`, $options: 'i' } };
+    const foundQuery = this.memberModel.findOne(q).select('-_id');
+    const found = await resolveQuery<any>(foundQuery);
+    return found as any;
   }
 
   async create(dto: CreateMemberDto): Promise<Member> {
@@ -129,9 +144,20 @@ export class MembersService {
       dniCountMap.set(c.dni!, (dniCountMap.get(c.dni!) || 0) + 1);
     }
     const uniqueCandidates = [] as Candidate[];
+    // If a DNI appears multiple times in the uploaded file, keep the first occurrence
+    // and mark subsequent rows as failures (so at least one can be inserted).
+    const seenDnis = new Set<string>();
     for (const c of candidates) {
-      if ((dniCountMap.get(c.dni!) || 0) > 1) {
-        failures.push({ index: c.originalIndex, dni: c.dni, fullName: c.fullName, message: 'DNI duplicado en archivo', rowNumber: c.rowNumber });
+      const count = dniCountMap.get(c.dni!) || 0;
+      if (count > 1) {
+        if (!seenDnis.has(c.dni!)) {
+          // keep the first occurrence
+          uniqueCandidates.push(c);
+          seenDnis.add(c.dni!);
+        } else {
+          // subsequent occurrences marked as duplicate
+          failures.push({ index: c.originalIndex, dni: c.dni, fullName: c.fullName, message: 'DNI duplicado en archivo', rowNumber: c.rowNumber });
+        }
       } else {
         uniqueCandidates.push(c);
       }
@@ -167,7 +193,8 @@ export class MembersService {
 
     // Step 3: query DB once for existing DNIs
     const dniList = uniqueCandidates.map((c) => c.dni);
-    const existingDocs = await this.memberModel.find({ dni: { $in: dniList } }).select('dni').lean().exec();
+    const existingQuery = this.memberModel.find({ dni: { $in: dniList } }).select('dni');
+    const existingDocs = await resolveQuery<any[]>(existingQuery);
     const existingSet = new Set(existingDocs.map((d: any) => d.dni));
 
     const readyToInsert = uniqueCandidates.filter((c) => {
@@ -199,7 +226,8 @@ export class MembersService {
           for (const c of batch) inserted.push({ dni: c.dni!, fullName: c.fullName! });
         } else {
           // Some inserts failed silently; we'll try to query which ones exist now
-          const nowExist = await this.memberModel.find({ dni: { $in: batch.map(b => b.dni) } }).select('dni fullName').lean().exec();
+          const nowExistQuery = this.memberModel.find({ dni: { $in: batch.map(b => b.dni) } }).select('dni fullName');
+          const nowExist = await resolveQuery<any[]>(nowExistQuery);
           const existSetNow = new Set(nowExist.map((d: any) => d.dni));
           for (const c of batch) {
             if (existSetNow.has(c.dni!)) {

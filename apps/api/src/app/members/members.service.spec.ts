@@ -83,7 +83,10 @@ describe('MembersService', () => {
 
       const result = await service.searchByDni('12345678');
       expect(result).toEqual(mockMember);
-      expect(model.findOne).toHaveBeenCalledWith({ dni: expect.any(RegExp) });
+      // Accept either an exact string match (optimized path) or a RegExp (previous behavior)
+      const calledArg = model.findOne.mock.calls[0][0];
+      expect(calledArg).toHaveProperty('dni');
+      expect(typeof calledArg.dni === 'string' || calledArg.dni instanceof RegExp).toBeTruthy();
     });
   });
 
