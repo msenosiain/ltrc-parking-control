@@ -49,6 +49,7 @@
   @if (rows.length > 0) {
     <div class="preview">
       <h3>Vista previa ({{ rows.length }} filas)</h3>
+      <div class="ltrc-list-wrapper">
       <table mat-table [dataSource]="rows" class="mat-elevation-z1">
 
         <ng-container matColumnDef="name">
@@ -77,6 +78,7 @@
         <tr mat-header-row *matHeaderRowDef="headerColumns"></tr>
         <tr mat-row *matRowDef="let _row; columns: headerColumns;"></tr>
       </table>
+      </div>
 
       @if (hasErrors()) {
         <p class="note">Corrija las filas marcadas antes de subir.</p>

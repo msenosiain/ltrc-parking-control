@@ -33,7 +33,7 @@ export class MembersListComponent implements OnInit {
   dataSource = new MatTableDataSource<Member>();
   totalMembers = 0;
   currentPage = 1;
-  pageSize = 25;
+  pageSize = 15;
   query = '';
 
   member!: Member;

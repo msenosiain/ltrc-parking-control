@@ -1,7 +1,7 @@
 <div class="members-list">
   <h2>Socios</h2>
 
-  <mat-toolbar color="transparent" class="members-toolbar" style="padding: 0; margin-bottom: 12px;">
+  <mat-toolbar color="transparent" class="members-toolbar">
     <div class="toolbar-left" style="display:flex; align-items:center; gap:8px;">
       <button mat-icon-button aria-label="Agregar socio" *ltrcAllowedRoles="[Role.ADMIN]" (click)="createMember()">
         <mat-icon>person_add</mat-icon>
@@ -14,9 +14,9 @@
   </mat-toolbar>
 
   <!-- Search form debajo del toolbar para que ocupe todo el ancho -->
-  <div class="search-area" style="margin-bottom:12px; display:flex; align-items:center;">
-    <form (ngSubmit)="applyFilter()" class="search-form" style="margin:0; width:100%;">
-      <mat-form-field appearance="outline" class="search-input" style="width:100%; height:36px;">
+  <div class="search-area">
+    <form (ngSubmit)="applyFilter()" class="search-form">
+      <mat-form-field appearance="outline" class="search-input">
         <input matInput [(ngModel)]="query" name="query" placeholder="Buscar..." />
         @if (query) {
           <button mat-icon-button matSuffix type="button" (click)="clearFilter()">
@@ -28,7 +28,8 @@
   </div>
 
 
-  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+  <div class="table-wrapper">
+    <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
 
     <ng-container matColumnDef="fullName">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
@@ -55,10 +56,11 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let _row; columns: displayedColumns;"></tr>
   </table>
+  </div>
 
   <mat-paginator [length]="totalMembers"
                  [pageSize]="pageSize"
-                 [pageSizeOptions]="[10, 25, 50, 100]"
+                 [pageSizeOptions]="[15, 25, 50, 100]"
                  (page)="onPageChange($event)">
   </mat-paginator>
 </div>

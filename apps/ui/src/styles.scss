@@ -109,3 +109,10 @@ body {
   direction: ltr;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Utility for list/table wrappers: horizontal scroll only, vertical flow handled by document */
+.ltrc-list-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}

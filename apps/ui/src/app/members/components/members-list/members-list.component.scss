@@ -16,6 +16,42 @@
 
 .members-list {
   padding: 20px;
+  /* Make sure the listing doesn't force the page to overflow vertically */
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.members-toolbar {
+  padding: 0;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.search-area {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  // Make the search form expand more and be centered on wide screens
+  .search-form {
+    flex: 1 1 0;
+    max-width: 900px; /* allow it to grow big on wide screens */
+    margin: 0 auto;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}
+
+.table-wrapper {
+  width: 100%;
+  /* Allow horizontal scroll only for wide tables; avoid adding a vertical scrollbar inside the page */
+  overflow-x: auto;
+  overflow-y: visible;
+  /* removed max-height to let the page/body handle vertical scrolling */
 }
 
 mat-table {
