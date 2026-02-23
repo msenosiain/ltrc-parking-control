@@ -15,13 +15,26 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>(
-          'AUTH_JWT_SECRET',
-          configService.get<string>('GOOGLE_AUTH_JWT_SECRET', 'super-secret-key'),
-        ),
-        signOptions: { expiresIn: '1h' },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        // Prefer a dedicated AUTH_JWT_SECRET. For backward compatibility,
+        // fall back to GOOGLE_AUTH_JWT_SECRET if AUTH_JWT_SECRET is not set.
+        // Do NOT use a hard-coded weak default in production.
+        const secret =
+          configService.get<string>('AUTH_JWT_SECRET') ||
+          configService.get<string>('GOOGLE_AUTH_JWT_SECRET');
+
+        if (!secret) {
+          // Fail fast so deployment/configurations without a secret are obvious.
+          throw new Error(
+            'Missing JWT secret: please set AUTH_JWT_SECRET (or GOOGLE_AUTH_JWT_SECRET)',
+          );
+        }
+
+        return {
+          secret,
+          signOptions: { expiresIn: '1h' },
+        };
+      },
     }),
     UsersModule,
   ],

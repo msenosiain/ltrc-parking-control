@@ -37,6 +37,8 @@ testem.log
 # Environment files
 .env
 !.env.example
+render/api.env
+*.env
 
 # System Files
 .DS_Store

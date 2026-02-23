@@ -13,7 +13,7 @@ type GoogleProfile = {
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  private allowedDomain: string;
+  private readonly allowedDomain: string;
 
   constructor(
     private usersService: UsersService,
