@@ -84,75 +84,155 @@ export class MembersService {
 
   /**
    * Bulk insert members but continue on any error. Returns inserted docs and failures with context.
+   * This implementation optimizes by:
+   * - normalizing DNIs once
+   * - detecting duplicates inside the upload
+   * - checking existing DNIs in a single DB query
+   * - performing unordered bulkWrite in configurable chunks
    */
-  async createMembersBulk(members: Partial<Member>[]): Promise<{ inserted: Member[]; failures: { index?: number; dni?: string; fullName?: string; message: string; rowNumber?: number }[] }> {
-    const inserted: Member[] = [];
+  async createMembersBulk(members: Partial<Member>[]): Promise<{ inserted: { dni: string; fullName: string }[]; failures: { index?: number; dni?: string; fullName?: string; message: string; rowNumber?: number }[] }> {
     const failures: { index?: number; dni?: string; fullName?: string; message: string; rowNumber?: number }[] = [];
+    const inserted: { dni: string; fullName: string }[] = [];
+
+    if (!Array.isArray(members) || members.length === 0) {
+      return { inserted, failures };
+    }
+
+    // Step 1: normalize and basic validation
+    type Candidate = { originalIndex: number; rowNumber: number; rawDni?: any; fullName?: any; dni?: string };
+    const candidates: Candidate[] = [];
 
     for (let i = 0; i < members.length; i++) {
-      const m = members[i];
-      try {
-        // Normalize DNI: remove dots, spaces, and ensure string
-        const rawDni = (m as any).dni ? String((m as any).dni) : '';
-        const dniNormalized = rawDni.replace(/\.|\s|-/g, '').trim();
-        // If no dni or fullName, mark as failure without attempting insert
-        if (!dniNormalized || !((m as any).fullName && String((m as any).fullName).trim())) {
-          failures.push({ index: i, dni: dniNormalized || undefined, fullName: (m as any).fullName ?? undefined, message: 'Fila inválida: nombre o DNI faltante', rowNumber: (m as any).rowNumber ?? i + 2 });
-          continue;
-        }
+      const m = members[i] as any;
+      const rowNumber = (m && (m.rowNumber || m.sourceRow)) ? Number(m.rowNumber || m.sourceRow) : i + 2; // default assume header row
+      const rawDni = m?.dni ?? '';
+      const fullName = m?.fullName ?? '';
+      const dniNormalized = typeof rawDni === 'string' || typeof rawDni === 'number'
+        ? String(rawDni).replace(/\.|\s|-/g, '').trim()
+        : '';
 
-        // Check existing by normalized DNI to avoid duplicates on re-upload
-         let existing: any = null;
-         if (typeof (this.memberModel as any).findOne === 'function') {
-           try {
-            // Build a regex that matches the DNI digits with optional non-digit separators
-            // e.g., '8456087' -> /^(8\D*4\D*5\D*6\D*0\D*8\D*7)$/
-            const pattern = dniNormalized.split('').map((d: string) => `${d}\D*`).join('');
-            const regex = new RegExp(`^${pattern}$`);
-            const q = (this.memberModel as any).findOne({ dni: { $regex: regex } });
-             if (q && typeof q.exec === 'function') {
-               existing = await q.exec();
-             } else {
-               // some mocks return a direct value or promise
-               existing = await q;
-             }
-           } catch (e) {
-             // ignore errors from mock/driver and proceed to attempt create
-             existing = null;
-           }
-         }
-         if (existing) {
-           failures.push({ index: i, dni: dniNormalized, fullName: (m as any).fullName ?? undefined, message: 'DNI duplicado', rowNumber: (m as any).rowNumber ?? i + 2 });
-           continue;
-         }
+      if (!dniNormalized || !String(fullName).trim()) {
+        failures.push({ index: i, dni: dniNormalized || undefined, fullName: fullName ?? undefined, message: 'Fila inválida: nombre o DNI faltante', rowNumber });
+        continue;
+      }
 
-         // Create with normalized dni
-         const doc = await this.memberModel.create({ fullName: String((m as any).fullName).trim(), dni: dniNormalized });
-         inserted.push(doc);
-      } catch (err: any) {
-        // collect failure info but continue
-        let msg = 'Error al insertar fila';
-        let dniVal: string | undefined = undefined;
+      candidates.push({ originalIndex: i, rowNumber, rawDni, fullName: String(fullName).trim(), dni: dniNormalized });
+    }
+
+    if (candidates.length === 0) {
+      return { inserted, failures };
+    }
+
+    // Step 2: detect duplicates within the uploaded file
+    const dniCountMap = new Map<string, number>();
+    for (const c of candidates) {
+      dniCountMap.set(c.dni!, (dniCountMap.get(c.dni!) || 0) + 1);
+    }
+    const uniqueCandidates = [] as Candidate[];
+    for (const c of candidates) {
+      if ((dniCountMap.get(c.dni!) || 0) > 1) {
+        failures.push({ index: c.originalIndex, dni: c.dni, fullName: c.fullName, message: 'DNI duplicado en archivo', rowNumber: c.rowNumber });
+      } else {
+        uniqueCandidates.push(c);
+      }
+    }
+
+    if (uniqueCandidates.length === 0) {
+      return { inserted, failures };
+    }
+
+    // If the model is a lightweight mock (tests) and doesn't implement find/bulkWrite, fallback to sequential create
+    const hasFind = typeof (this.memberModel as any).find === 'function';
+    const hasBulk = typeof (this.memberModel as any).bulkWrite === 'function';
+
+    if (!hasFind || !hasBulk) {
+      // Sequential path: try create per candidate and rely on thrown errors to detect duplicates
+      for (const c of uniqueCandidates) {
         try {
-          dniVal = (m as any).dni?.toString();
-        } catch {}
-        let rowNumber: number | undefined = undefined;
-        if ((m as any).sourceRow) {
-          rowNumber = Number((m as any).sourceRow);
-        } else {
-          rowNumber = i + 2; // default: assume header at row 1, data starts at row 2
-        }
-        if (err && (err.code === 11000 || (err.err && err.err.code === 11000))) {
-          msg = 'DNI duplicado';
-          const keyValue = err.keyValue || (err.err && err.err.keyValue);
-          if (keyValue) {
-            dniVal = keyValue.dni ?? keyValue.DNI ?? dniVal;
+          await (this.memberModel as any).create({ fullName: c.fullName, dni: c.dni });
+          inserted.push({ dni: c.dni!, fullName: c.fullName! });
+        } catch (err: any) {
+          let msg = 'Error al insertar fila';
+          if (err && (err.code === 11000 || (err.err && err.err.code === 11000))) {
+            msg = 'DNI duplicado';
+          } else if (err && err.message) {
+            msg = err.message;
           }
-        } else if (err && err.message) {
-          msg = err.message;
+          failures.push({ index: c.originalIndex, dni: c.dni, fullName: c.fullName, message: msg, rowNumber: c.rowNumber });
         }
+      }
 
-        failures.push({ index: i, dni: dniVal, fullName: (m as any).fullName ?? undefined, message: msg, rowNumber });
+      return { inserted, failures };
+    }
+
+    // Step 3: query DB once for existing DNIs
+    const dniList = uniqueCandidates.map((c) => c.dni);
+    const existingDocs = await this.memberModel.find({ dni: { $in: dniList } }).select('dni').lean().exec();
+    const existingSet = new Set(existingDocs.map((d: any) => d.dni));
+
+    const readyToInsert = uniqueCandidates.filter((c) => {
+      if (existingSet.has(c.dni!)) {
+        failures.push({ index: c.originalIndex, dni: c.dni, fullName: c.fullName, message: 'DNI duplicado', rowNumber: c.rowNumber });
+        return false;
+      }
+      return true;
+    });
+
+    if (readyToInsert.length === 0) {
+      return { inserted, failures };
+    }
+
+    // Step 4: perform bulkWrite in chunks
+    const BATCH_SIZE = 500; // adjustable
+
+    for (let i = 0; i < readyToInsert.length; i += BATCH_SIZE) {
+      const batch = readyToInsert.slice(i, i + BATCH_SIZE);
+      const ops = batch.map((c) => ({ insertOne: { document: { fullName: c.fullName, dni: c.dni } } }));
+
+      try {
+        const res: any = await (this.memberModel as any).bulkWrite(ops, { ordered: false });
+        // res may contain insertedCount — infer successful ops by comparing
+        const insertedCount = res.insertedCount || 0;
+        // We can't get the actual docs from bulkWrite easily; return minimal records
+        // Mark all batch entries as inserted, minus those that may have errors
+        if (insertedCount === ops.length) {
+          for (const c of batch) inserted.push({ dni: c.dni!, fullName: c.fullName! });
+        } else {
+          // Some inserts failed silently; we'll try to query which ones exist now
+          const nowExist = await this.memberModel.find({ dni: { $in: batch.map(b => b.dni) } }).select('dni fullName').lean().exec();
+          const existSetNow = new Set(nowExist.map((d: any) => d.dni));
+          for (const c of batch) {
+            if (existSetNow.has(c.dni!)) {
+              inserted.push({ dni: c.dni!, fullName: c.fullName! });
+            } else {
+              failures.push({ index: c.originalIndex, dni: c.dni, fullName: c.fullName, message: 'Error al insertar fila (posible conflicto)', rowNumber: c.rowNumber });
+            }
+          }
+        }
+      } catch (err: any) {
+        // BulkWriteError thrown when there are writeErrors; still some ops may have succeeded
+        // Parse err.writeErrors if present
+        const writeErrors = err && err.writeErrors ? err.writeErrors : [];
+        const failedOpIndexes = new Set<number>(writeErrors.map((we: any) => we.index));
+
+        for (let j = 0; j < batch.length; j++) {
+          const c = batch[j];
+          if (failedOpIndexes.has(j)) {
+            const we = writeErrors.find((x: any) => x.index === j);
+            let msg = 'Error al insertar fila';
+            if (we && we.err && we.err.code === 11000) {
+              msg = 'DNI duplicado';
+            } else if (we && we.err && we.err.errmsg) {
+              msg = String(we.err.errmsg);
+            } else if (we && we.err && we.err.message) {
+              msg = String(we.err.message);
+            }
+            failures.push({ index: c.originalIndex, dni: c.dni, fullName: c.fullName, message: msg, rowNumber: c.rowNumber });
+          } else {
+            // assumed inserted
+            inserted.push({ dni: c.dni!, fullName: c.fullName! });
+          }
+        }
       }
     }
 
