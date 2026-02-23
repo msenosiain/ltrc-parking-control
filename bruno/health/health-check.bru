@@ -5,22 +5,21 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}
+  url: {{baseUrl}}/health
   body: none
   auth: none
 }
 
 docs {
   # Health Check
-
+  
   Verifica que la API está funcionando correctamente.
-
+  
   ## Respuesta esperada
-
+  
   ```json
   {
     "message": "Hello API"
   }
   ```
 }
-

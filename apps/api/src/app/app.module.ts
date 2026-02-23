@@ -11,9 +11,9 @@ import { join } from 'path';
 import { HealthController } from './health/health.controller';
 
 export const configSchema = Joi.object({
-  API_PORT: Joi.number().integer().required(),
-  API_GLOBAL_PREFIX: Joi.string().required(),
-  API_CORS_ALLOWED_ORIGINS: Joi.string().required(),
+  API_PORT: Joi.number().integer().default(3000),
+  API_GLOBAL_PREFIX: Joi.string().default('/api/v1'),
+  API_CORS_ALLOWED_ORIGINS: Joi.string().allow('').optional(),
   MONGODB_URI: Joi.string().required(),
   ACCESS_LOG_THRESHOLD: Joi.number().integer().required(),
   GOOGLE_AUTH_CLIENT_ID: Joi.string().allow('').optional(),
