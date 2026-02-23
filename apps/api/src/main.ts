@@ -85,8 +85,12 @@ async function bootstrap() {
   });
 
   Logger.log('Adding global prefix');
-  const globalPrefix = configService.get<string>('API_GLOBAL_PREFIX', '/api/v1');
-  app.setGlobalPrefix(globalPrefix);
+  const rawGlobalPrefix = String(configService.get<string>('API_GLOBAL_PREFIX', '/api/v1'));
+  // Normalize to avoid repeated slashes and ensure we pass a prefix without leading slash to Nest
+  const normalizedPrefix = rawGlobalPrefix.replace(/^\/+|\/+$/g, '');
+  // If nothing left (root), leave it empty so setGlobalPrefix won't add an extra slash
+  const prefixForNest = normalizedPrefix || '';
+  app.setGlobalPrefix(prefixForNest);
 
   app.useGlobalFilters(new MongooseExceptionFilter());
 
@@ -100,7 +104,9 @@ async function bootstrap() {
   const port = configService.get<number>('API_PORT') || 3000;
   await app.listen(port);
 
-  Logger.log(`Listening at http://localhost:${port}${globalPrefix}`);
+  // Show a friendly URL with leading slash (even if we passed the prefix without it to Nest)
+  const displayPrefix = prefixForNest ? `/${prefixForNest}` : '';
+  Logger.log(`Listening at http://localhost:${port}${displayPrefix}`);
 }
 
 bootstrap();

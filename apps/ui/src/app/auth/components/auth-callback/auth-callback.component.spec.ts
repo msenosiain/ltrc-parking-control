@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AuthCallbackComponent } from './auth-callback.component';
-import { provideRouter, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 
@@ -9,11 +9,13 @@ describe('AuthCallbackComponent', () => {
   let fixture: ComponentFixture<AuthCallbackComponent>;
 
   beforeEach(async () => {
+    const routerStub = { navigate: jest.fn() } as unknown as Router;
+
     await TestBed.configureTestingModule({
       imports: [AuthCallbackComponent],
       providers: [
-        provideRouter([]),
         provideHttpClient(),
+        { provide: Router, useValue: routerStub },
         {
           provide: ActivatedRoute,
           useValue: {

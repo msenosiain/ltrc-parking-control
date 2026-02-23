@@ -1,17 +1,19 @@
-import {Injectable} from '@angular/core';
-import {environment} from '../../environments/environment';
-import {BehaviorSubject, Observable, tap, throwError} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import {User} from '../users/User.interface';
-import {jwtDecode} from 'jwt-decode';
-import {Router} from '@angular/router';
+import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { BehaviorSubject, Observable, tap, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { User } from '../users/User.interface';
+import { jwtDecode } from 'jwt-decode';
+import { Router } from '@angular/router';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private authApiUrl = `${environment.apiBaseUrl}/auth`;
+  // Minimal base URL handling: remove trailing slash if present
+  private apiBase = (environment.apiBaseUrl || '/api/v1').replace(/\/+$/g, '');
+  private authApi = `${this.apiBase}/auth`;
 
-  private accessTokenKey = 'access_token';
-  private refreshTokenKey = 'refresh_token';
+  private accessTokenKey = environment.accessTokenKey || 'access_token';
+  private refreshTokenKey = environment.refreshTokenKey || 'refresh_token';
 
   private userSubject = new BehaviorSubject<User | null>(null);
   user$ = this.userSubject.asObservable();
@@ -22,17 +24,17 @@ export class AuthService {
       try {
         const user: User = jwtDecode(token);
         this.userSubject.next(user);
-      } catch (e) {
-        this.logout();
+      } catch {
+        // ignore invalid token
       }
     }
   }
 
+  /**
+   * Traditional username/password login.
+   */
   login(email: string, pass: string): Observable<{ access_token: string; refresh_token: string }> {
-    return this.http.post<{ access_token: string; refresh_token: string }>(`${this.authApiUrl}/login`, {
-      email,
-      pass
-    }).pipe(
+    return this.http.post<{ access_token: string; refresh_token: string }>(`${this.authApi}/login`, { email, pass }).pipe(
       tap(tokens => {
         this.setAccessToken(tokens.access_token);
         this.setRefreshToken(tokens.refresh_token);
@@ -40,40 +42,66 @@ export class AuthService {
     );
   }
 
-  loginWithGoogle() {
-    window.location.href = `${this.authApiUrl}/google`;
+  /**
+   * Start Google OAuth by navigating the main window to the backend endpoint.
+   */
+  loginWithGoogle(): void {
+    const href = `${this.apiBase}/auth/google`;
+    window.location.href = href;
   }
 
-  setAccessToken(accessToken: string) {
-    localStorage.setItem(this.accessTokenKey, accessToken);
-    const user: User = jwtDecode(accessToken);
-    setTimeout(() => {
-      this.userSubject.next(user);
-    });
-  }
-
-  setRefreshToken(refreshToken: string) {
-    localStorage.setItem(this.refreshTokenKey, refreshToken);
-  }
-
-  refreshToken(): Observable<{ access_token: string; refresh_token: string }> {
-
-    const refreshToken = localStorage.getItem(this.refreshTokenKey);
-    if (refreshToken && this.isTokenExpired(refreshToken)) {
-      this.logout();
-      this.router.navigate(['/login']);
-      return throwError(() => new Error('Refresh token expired'));
+  /**
+   * Store access token and update user observable.
+   */
+  setAccessToken(accessToken: string): void {
+    try {
+      localStorage.setItem(this.accessTokenKey, accessToken);
+      const user: User = jwtDecode(accessToken);
+      // update observable asynchronously
+      setTimeout(() => this.userSubject.next(user));
+    } catch {
+      // ignore storage/decoding errors
     }
+  }
 
-    return this.http.post<{ access_token: string; refresh_token: string }>(`${this.authApiUrl}/refresh`, {'refresh': refreshToken});
+  /**
+   * Store refresh token.
+   */
+  setRefreshToken(refreshToken: string): void {
+    try {
+      localStorage.setItem(this.refreshTokenKey, refreshToken);
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  /**
+   * Refresh tokens using the backend.
+   */
+  refreshToken(): Observable<{ access_token: string; refresh_token: string }> {
+    const refreshToken = localStorage.getItem(this.refreshTokenKey);
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token'));
+    }
+    return this.http.post<{ access_token: string; refresh_token: string }>(`${this.authApi}/refresh`, { refresh: refreshToken }).pipe(
+      tap(tokens => {
+        this.setAccessToken(tokens.access_token);
+        this.setRefreshToken(tokens.refresh_token);
+      })
+    );
   }
 
   getAccessToken(): string | null {
     return localStorage.getItem(this.accessTokenKey);
   }
 
-  logout() {
-    localStorage.clear();
+  logout(): void {
+    try {
+      localStorage.removeItem(this.accessTokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+    } catch {
+      // ignore
+    }
     this.userSubject.next(null);
   }
 
@@ -81,6 +109,9 @@ export class AuthService {
     return !!this.getAccessToken();
   }
 
+  /**
+   * Check token expiry quickly.
+   */
   private isTokenExpired(token: string): boolean {
     try {
       const decoded = jwtDecode<{ exp: number }>(token);

@@ -19,13 +19,43 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     private usersService: UsersService,
     configService: ConfigService,
   ) {
+    // Read raw redirect URL and API_GLOBAL_PREFIX from config and normalize to avoid duplicated prefix segments
+    const rawRedirect = configService.get<string>(
+      'GOOGLE_AUTH_REDIRECT_URL',
+      'http://localhost:3000/api/v1/auth/google/redirect',
+    );
+    const apiGlobalPrefix = String(configService.get<string>('API_GLOBAL_PREFIX', '/api/v1'));
+
+    let callbackURL: string;
+    try {
+      const isAbsolute = /^https?:\/\//i.test(rawRedirect);
+
+      // Normalize prefix to a single segment without leading/trailing slashes (e.g. 'api/v1')
+      const segment = apiGlobalPrefix.replace(/^\/+/g, '').replace(/\/+$/g, '');
+      const terminal = 'auth/google/redirect';
+
+      // If no prefix configured, just use the terminal path (absolute or relative as provided)
+      const desiredPath = segment ? `/${segment}/${terminal}` : `/${terminal}`;
+
+      // Collapse repeated groups like '/api/v1/api/v1' -> '/api/v1'
+      const collapsedPath = desiredPath.replace(new RegExp(`(/${segment})+`, 'g'), `/${segment}`);
+
+      if (isAbsolute) {
+        const url = new URL(rawRedirect);
+        url.pathname = collapsedPath;
+        callbackURL = url.toString();
+      } else {
+        callbackURL = collapsedPath;
+      }
+    } catch (e) {
+      // If parsing fails, fall back to the raw value (safe default)
+      callbackURL = rawRedirect;
+    }
+
     super({
       clientID: configService.get<string>('GOOGLE_AUTH_CLIENT_ID') || 'dummy',
       clientSecret: configService.get<string>('GOOGLE_AUTH_CLIENT_SECRET') || 'dummy',
-      callbackURL: configService.get<string>(
-        'GOOGLE_AUTH_REDIRECT_URL',
-        'http://localhost:3000/api/v1/auth/google/redirect',
-      ),
+      callbackURL,
       scope: ['email', 'profile'],
     });
     this.allowedDomain = configService.get<string>('GOOGLE_AUTH_ALLOWED_DOMAIN', '');
