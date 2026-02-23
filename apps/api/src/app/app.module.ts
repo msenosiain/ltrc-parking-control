@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { ParkingModule } from './parking/parking.module';
 import * as Joi from 'joi';
 import { join } from 'path';
+import { HealthController } from './health/health.controller';
 
 export const configSchema = Joi.object({
   API_PORT: Joi.number().integer().required(),
@@ -54,5 +55,6 @@ export const configSchema = Joi.object({
     UsersModule,
     ParkingModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
