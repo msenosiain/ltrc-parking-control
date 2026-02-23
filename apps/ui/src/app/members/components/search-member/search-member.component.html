@@ -2,7 +2,7 @@
   <mat-card class="search-card" appearance="outlined">
     @if (!member && !registerAccessResponse && !memberNotFoundMessage) {
       <form (ngSubmit)="search()" class="search-form">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="search-input">
           <input matInput mask="separator" thousandSeparator="." separatorLimit="90000000" type="tel"
                  [formControl]="dni" placeholder="Ingrese un número de DNI"/>
         </mat-form-field>
