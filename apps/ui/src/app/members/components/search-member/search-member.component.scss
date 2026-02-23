@@ -8,19 +8,31 @@
 
   .search-form {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 8px;
     align-items: center;
     width: 100%;
 
     .search-input {
-      flex: 1 1 0;
-      max-width: 700px;
       width: 100%;
+      max-width: 700px; /* keep a comfortable width on wide screens */
+      margin: 0 auto; /* center the input */
     }
 
     button[type="submit"] {
+      /* Make the button match the input width and be centered */
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
       white-space: nowrap;
+    }
+
+    .actions-container {
+      margin-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center; /* center status and Registrar SALIDA */
     }
   }
 
@@ -28,12 +40,14 @@
     .search-form {
       flex-direction: column;
 
-      .search-input {
-        max-width: 100%;
-      }
+      .search-input { max-width: 100%; }
+      button[type="submit"] { width: 100%; }
 
-      button[type="submit"] {
+      .actions-container {
         width: 100%;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
       }
     }
   }
@@ -49,8 +63,8 @@
   .actions-container {
     display: flex;
     flex-direction: column;
-    justify-content: center; /* centra horizontalmente */
-    align-items: center; /* centra verticalmente si el contenedor tiene altura */
+    justify-content: center;
+    align-items: center;
     height: 100px;
   }
 }

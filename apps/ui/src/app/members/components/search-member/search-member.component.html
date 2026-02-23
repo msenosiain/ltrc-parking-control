@@ -7,7 +7,7 @@
                  [formControl]="dni" placeholder="Ingrese un número de DNI"/>
         </mat-form-field>
 
-        <button mat-flat-button type="submit" [disabled]="dni.invalid">
+        <button mat-flat-button color="primary" type="submit" [disabled]="dni.invalid">
           <mat-icon>search</mat-icon>
           Buscar
         </button>
@@ -15,9 +15,9 @@
         @if (parkingStatus$ | async; as parkingStatus) {
           <div class="actions-container">
             <p class="available-spots">Quedan {{ parkingStatus.available }} lugares disponibles</p>
-            <button type="button" class="car-left" mat-flat-button (click)="carLeft()" [disabled]="parkingStatus.available === parkingStatus.total">
+            <button type="button" class="car-left" mat-flat-button color="accent" (click)="carLeft()" [disabled]="parkingStatus.available === parkingStatus.total">
               Registrar SALIDA
-              <mat-icon>directions_cark</mat-icon>
+              <mat-icon>directions_car</mat-icon>
             </button>
           </div>
         }
