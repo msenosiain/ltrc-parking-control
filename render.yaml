@@ -16,12 +16,11 @@ services:
       - key: API_GLOBAL_PREFIX
         value: /api/v1
       - key: API_CORS_ALLOWED_ORIGINS
-        value: "https://parking-control-be.lostordos.com.ar,https://parking-control-ui.onrender.com,https://estacionamiento.lostordos.com.ar"
-        sync: false
+        value: 'https://parking-control-be.lostordos.com.ar,https://parking-control-ui.onrender.com,https://estacionamiento.lostordos.com.ar'
       - key: MONGODB_URI
         sync: false
       - key: ACCESS_LOG_THRESHOLD
-        value: "30"
+        value: '30'
       - key: AUTH_JWT_SECRET
         sync: false
       - key: AUTH_REFRESH_JWT_SECRET
@@ -48,7 +47,7 @@ services:
         sync: false
         required: false
       - key: PARKING_SPACES
-        value: "50"
+        value: '50'
     healthCheckPath: /health
 
   # UI Frontend (Static Site)
