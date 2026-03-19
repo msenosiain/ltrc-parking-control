@@ -101,7 +101,7 @@ async function bootstrap() {
     }),
   );
 
-  const port = configService.get<number>('API_PORT') || 3000;
+  const port = process.env['PORT'] || configService.get<number>('API_PORT') || 3000;
   await app.listen(port);
 
   // Show a friendly URL with leading slash (even if we passed the prefix without it to Nest)
