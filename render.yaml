@@ -48,7 +48,7 @@ services:
         required: false
       - key: PARKING_SPACES
         value: '50'
-    healthCheckPath: /health
+    healthCheckPath: /api/v1/health
 
   # UI Frontend (Static Site)
   - type: web
